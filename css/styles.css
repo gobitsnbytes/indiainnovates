@@ -602,6 +602,20 @@ button {
   color: var(--white);
   border-top: var(--border-thick);
   border-bottom: var(--border-thick);
+  position: relative;
+  overflow: hidden;
+}
+
+.countdown-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../images/qGRWV9Oju58f.webp') center/cover no-repeat;
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .countdown-inner {
@@ -609,6 +623,8 @@ button {
   margin: 0 auto;
   padding: 0 var(--space-lg);
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .countdown-label {
