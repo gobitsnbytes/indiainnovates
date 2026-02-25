@@ -1197,6 +1197,29 @@ img {
   background: var(--bg-alt);
 }
 
+.organizers-sub-heading {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.organizers-main {
+  max-width: 400px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.organizer-card-highlight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .organizers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
