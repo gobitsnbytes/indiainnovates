@@ -70,12 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const question = item.querySelector('.faq-question');
     if (question) {
       question.addEventListener('click', () => {
-        const isOpen = item.classList.contains('open');
+        const isOpen = item.classList.contains('active');
         // Close all
-        faqItems.forEach(i => i.classList.remove('open'));
+        faqItems.forEach(i => i.classList.remove('active'));
         // Toggle current
         if (!isOpen) {
-          item.classList.add('open');
+          item.classList.add('active');
         }
       });
     }
