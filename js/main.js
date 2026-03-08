@@ -4,6 +4,40 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // --- Announcement Banner Dismiss ---
+  const announcementBanner = document.getElementById('announcement-banner');
+  const announcementClose = document.getElementById('announcement-close');
+  const nav = document.querySelector('.nav');
+
+  function updateNavOffset() {
+    if (!nav) return;
+    const bannerH = (announcementBanner && !announcementBanner.classList.contains('dismissed'))
+      ? announcementBanner.offsetHeight
+      : 0;
+    nav.style.top = bannerH + 'px';
+    // Keep hero padding in sync
+    document.documentElement.style.setProperty('--banner-height', bannerH + 'px');
+  }
+
+  if (announcementClose && announcementBanner) {
+    // Restore dismissed state within the same session
+    try {
+      if (sessionStorage.getItem('announcementDismissed') === '1') {
+        announcementBanner.classList.add('dismissed');
+      }
+    } catch (e) { /* ignore */ }
+
+    announcementClose.addEventListener('click', () => {
+      announcementBanner.classList.add('dismissed');
+      updateNavOffset();
+      try { sessionStorage.setItem('announcementDismissed', '1'); } catch (e) { /* ignore */ }
+    });
+  }
+
+  updateNavOffset();
+  // Re-calculate on resize (banner may reflow to different height)
+  window.addEventListener('resize', updateNavOffset, { passive: true });
+
   // --- Countdown Timer ---
   const targetDate = new Date('2026-03-28T09:00:00+05:30').getTime();
 
@@ -57,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Navbar Scroll Effect ---
-  const nav = document.querySelector('.nav');
   if (nav) {
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 50);
