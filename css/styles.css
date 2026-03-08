@@ -29,6 +29,11 @@
   --sky: #D6EFFF;
   --tricolor-saffron: #FF9933;
 
+  /* Sponsor tier colors */
+  --color-gold: #B8860B;
+  --color-silver: #808080;
+  --color-bronze: #CD7F32;
+
   /* Typography */
   --font-heading: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -1722,18 +1727,18 @@ button {
 }
 
 .sponsor-tier-title.tier-gold {
-  color: #B8860B;
-  border-color: #B8860B;
+  color: var(--color-gold);
+  border-color: var(--color-gold);
 }
 
 .sponsor-tier-title.tier-silver {
-  color: #808080;
-  border-color: #808080;
+  color: var(--color-silver);
+  border-color: var(--color-silver);
 }
 
 .sponsor-tier-title.tier-bronze {
-  color: #CD7F32;
-  border-color: #CD7F32;
+  color: var(--color-bronze);
+  border-color: var(--color-bronze);
 }
 
 .sponsor-cards {
