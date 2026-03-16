@@ -121,20 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'open';
   }
 
-  // --- Rank badge ---
-  function rankHTML(rank) {
-    if (rank <= 3) {
-      const cls = rank === 1 ? 'gold' : rank === 2 ? 'silver' : 'bronze';
-      return `<span class="rank-badge ${cls}">#${rank}</span>`;
-    }
-    return `<span class="rank-cell">#${rank}</span>`;
-  }
-
   // --- Render table row ---
   function renderRow(team) {
     const masked = maskEmail(team._le);
     return `<tr>
-      <td class="rank-cell ${team.r <= 3 ? 'top-3' : ''}">${rankHTML(team.r)}</td>
+      <td class="rank-cell">${team.r}</td>
       <td><span class="team-name">${escHTML(team.t)}</span></td>
       <td><span class="domain-tag ${domainClass(team.d)}">${escHTML(team.d)}</span></td>
       <td>${escHTML(team.o)}</td>
@@ -147,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const masked = maskEmail(team._le);
     return `<div class="result-card">
       <div class="result-card-header">
-        <div class="result-card-rank ${team.r <= 3 ? 'top-3' : ''}">#${team.r}</div>
+        <div class="result-card-rank">${team.r}</div>
         <div class="result-card-team">
           <div class="team-name">${escHTML(team.t)}</div>
           <div class="result-card-domain"><span class="domain-tag ${domainClass(team.d)}">${escHTML(team.d)}</span></div>

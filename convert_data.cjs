@@ -34,7 +34,6 @@ for (let i = 1; i < raw.length; i++) {
   const leaderEmail = String(row[2] || '').trim();
   const org = String(row[5] || '').trim();
   const domain = String(row[6] || '').trim();
-  const score = Number(row[7] || 0);
 
   const key = `${rank}_${teamName}`;
   if (!teamMap.has(key)) {
@@ -43,8 +42,7 @@ for (let i = 1; i < raw.length; i++) {
       t: teamName,
       l: Buffer.from(leaderEmail).toString('base64'),
       o: org,
-      d: DOMAIN_MAP[domain] || 'Open Innovation',
-      s: score,
+      d: DOMAIN_MAP[domain] || 'Open Innovation'
     });
   }
 }
