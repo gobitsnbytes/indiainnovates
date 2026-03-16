@@ -100,20 +100,7 @@ const html = `<!DOCTYPE html>
         Evaluation scores for all registered teams. Search for your team name, email, or organisation below.
       </p>
 
-      <div class="results-stats">
-        <div class="results-stat">
-          <div class="number" id="total-teams">--</div>
-          <div class="label">Teams Evaluated</div>
-        </div>
-        <div class="results-stat">
-          <div class="number">3</div>
-          <div class="label">Domains</div>
-        </div>
-        <div class="results-stat">
-          <div class="number">100</div>
-          <div class="label">Max Score</div>
-        </div>
-      </div>
+
     </div>
   </section>
 

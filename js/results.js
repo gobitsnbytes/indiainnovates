@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!query) {
       displayedTeams = allTeams;
       currentPage = 1;
-      if (searchMeta) searchMeta.innerHTML = `Showing all <strong>${allTeams.length}</strong> teams`;
+      if (searchMeta) searchMeta.innerHTML = '';
       if (searchClear) searchClear.classList.remove('visible');
       if (bruteSection) bruteSection.classList.remove('visible');
       render();
@@ -428,6 +428,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Initial render ---
-  if (searchMeta) searchMeta.innerHTML = `Showing all <strong>${allTeams.length}</strong> teams`;
+  if (searchMeta) searchMeta.innerHTML = '';
   render();
 });
