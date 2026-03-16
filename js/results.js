@@ -138,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <td><span class="team-name">${escHTML(team.t)}</span></td>
       <td><span class="domain-tag ${domainClass(team.d)}">${escHTML(team.d)}</span></td>
       <td>${escHTML(team.o)}</td>
-      <td class="score-cell">${team.s}<div class="score-bar"><div class="score-bar-fill" style="width:${team.s}%"></div></div></td>
       <td><span class="masked-email no-select" data-e="${team.l}" data-m="${escHTML(masked)}">${escHTML(masked)}<span class="reveal-hint">click</span></span></td>
     </tr>`;
   }
@@ -159,11 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="field-label">Organisation</div>
           <div class="field-value">${escHTML(team.o)}</div>
         </div>
-        <div class="result-card-field">
-          <div class="field-label">Score</div>
-          <div class="field-value score-cell">${team.s}/100</div>
-        </div>
-        <div class="result-card-field">
+        <div class="result-card-field full-width">
           <div class="field-label">Leader Email</div>
           <div class="field-value"><span class="masked-email no-select" data-e="${team.l}" data-m="${escHTML(masked)}">${escHTML(masked)}<span class="reveal-hint">tap</span></span></div>
         </div>

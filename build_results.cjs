@@ -167,7 +167,6 @@ const html = `<!DOCTYPE html>
             <th>Team Name</th>
             <th>Domain</th>
             <th>Organisation</th>
-            <th>Score</th>
             <th>Leader Email</th>
           </tr>
         </thead>
