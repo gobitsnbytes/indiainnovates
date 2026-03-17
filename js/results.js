@@ -68,14 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!dataEl || !searchInput || !searchBtn || !lookupResult) return;
 
-  // === DISABLE CHECK FEATURE ===
-  // Disable all input and show reconsideration notice
-  searchInput.disabled = true;
-  searchBtn.disabled = true;
-  searchClear.disabled = true;
-  if (searchMeta) searchMeta.textContent = 'We\'ve received enormous complaints and we\'re reconsidering the results. 8:00 PM IST 17-03-2026';
-  setResult('not-found', 'Results are temporarily unavailable. Please check back later.');
-  return;
+  // ...existing code...
 
   let entries;
   try {
