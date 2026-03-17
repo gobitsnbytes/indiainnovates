@@ -84,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const hashSet = new Set(entries.map((item) => String(item.h || '').toLowerCase()).filter(Boolean));
 
-  // 17 Mar 2026, 20:00 IST = 17 Mar 2026, 14:30 UTC
-  const UNLOCK_AT_UTC_MS = Date.UTC(2026, 2, 17, 14, 30, 0);
+  // Timer lock removed: allow search immediately
+  // const UNLOCK_AT_UTC_MS = Date.UTC(2026, 2, 17, 14, 30, 0);
 
   function formatCountdown(msLeft) {
     const totalSec = Math.max(0, Math.floor(msLeft / 1000));
@@ -95,31 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   }
 
+  // Timer lock removed: allow search immediately
   function applyTimeLock() {
-    const now = Date.now();
-    if (now >= UNLOCK_AT_UTC_MS) return false;
-
-    searchInput.disabled = true;
-    searchBtn.disabled = true;
-    searchClear.disabled = true;
-    searchBtn.textContent = 'Locked';
-    searchInput.placeholder = 'Results unlock at 20:00 IST, 17 Mar 2026';
-
-    const tick = () => {
-      const remaining = UNLOCK_AT_UTC_MS - Date.now();
-      if (remaining <= 0) {
-        location.reload();
-        return;
-      }
-      if (searchMeta) {
-        searchMeta.textContent = `Results are locked until 20:00 IST (17 Mar 2026). Time left: ${formatCountdown(remaining)}`;
-      }
-      setResult('not-found', 'Verification is temporarily locked before the official release time.');
-    };
-
-    tick();
-    setInterval(tick, 1000);
-    return true;
+    return false;
   }
 
   async function sha256Hex(text) {
