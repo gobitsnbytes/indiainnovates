@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const hashSet = new Set(entries.map((item) => String(item.h || '').toLowerCase()).filter(Boolean));
 
-  // 17 Mar 2026, 14:30 IST = 17 Mar 2026, 09:00 UTC
-  const UNLOCK_AT_UTC_MS = Date.UTC(2026, 2, 17, 9, 0, 0);
+  // 17 Mar 2026, 20:00 IST = 17 Mar 2026, 14:30 UTC
+  const UNLOCK_AT_UTC_MS = Date.UTC(2026, 2, 17, 14, 30, 0);
 
   function formatCountdown(msLeft) {
     const totalSec = Math.max(0, Math.floor(msLeft / 1000));
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     searchBtn.disabled = true;
     searchClear.disabled = true;
     searchBtn.textContent = 'Locked';
-    searchInput.placeholder = 'Results unlock at 14:30 IST, 17 Mar 2026';
+    searchInput.placeholder = 'Results unlock at 20:00 IST, 17 Mar 2026';
 
     const tick = () => {
       const remaining = UNLOCK_AT_UTC_MS - Date.now();
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if (searchMeta) {
-        searchMeta.textContent = `Results are locked until 14:30 IST (17 Mar 2026). Time left: ${formatCountdown(remaining)}`;
+        searchMeta.textContent = `Results are locked until 20:00 IST (17 Mar 2026). Time left: ${formatCountdown(remaining)}`;
       }
       setResult('not-found', 'Verification is temporarily locked before the official release time.');
     };
