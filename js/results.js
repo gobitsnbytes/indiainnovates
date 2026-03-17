@@ -158,12 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hashSet.has(hash)) {
         setResult(
           'success',
-          'Shortlisted: this email is in the Round 1 selected list. Please check your registered inbox for next steps.'
+          'You are shortlisted for the finals at Bharat Mandapam on 28th. Email coming soon with next steps.'
         );
       } else {
         setResult(
           'not-found',
-          'No shortlisted record found for this email. If you believe this is an error, contact the organizers.'
+          'You are not selected. If you think this is wrong, ask on #queries.'
         );
       }
     } catch {
