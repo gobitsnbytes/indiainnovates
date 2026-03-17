@@ -14,19 +14,12 @@
  */
 const path = require('path');
 const fs   = require('fs');
+const crypto = require('crypto');
 
 let XLSX;
 try { XLSX = require('xlsx'); } catch {
   XLSX = require(path.join('/tmp/xlsx_temp/node_modules/xlsx'));
 }
-
-// ─── Domain map (same as convert_data.cjs) ────────────────────────────────
-const DOMAIN_MAP = {
-  '1': 'Urban Solutions',
-  '2': 'Digital Democracy',
-  '3': 'Open Innovation',
-  '':  'Open Innovation',
-};
 
 // ─── Load both workbooks ──────────────────────────────────────────────────
 const inviteFile = path.join(__dirname, 'II2026_Invite_List.xlsx');
@@ -60,10 +53,14 @@ for (let i = 1; i < rawCopy.length; i++) {
 
 console.log(`✅ Loaded ${domainByTeam.size} domain entries from copy.xlsx`);
 
+function hashEmail(email) {
+  return crypto.createHash('sha256').update(email).digest('hex');
+}
+
 // ─── Process invite list ──────────────────────────────────────────────────
 // invite.xlsx columns: [0]=team_name [1]=LeaderEmail [2]=CandName
 //                      [3]=CandEmail [4]=Org
-const teamMap = new Map(); // key → team object
+const hashSet = new Set();
 
 let matched = 0, unmatched = 0;
 
@@ -73,11 +70,10 @@ for (let i = 1; i < rawInvite.length; i++) {
 
   const teamName    = String(row[0]).trim();
   const leaderEmail = String(row[1] || '').trim();
-  const org         = String(row[4] || '').trim();
+  const normalizedEmail = leaderEmail.toLowerCase();
 
   // Look up domain from copy.xlsx
-  const domainCode = domainByTeam.get(teamName.toLowerCase()) ?? '';
-  const domainLabel = DOMAIN_MAP[domainCode] || 'Open Innovation';
+  domainByTeam.get(teamName.toLowerCase()) ?? '';
 
   if (domainByTeam.has(teamName.toLowerCase())) {
     matched++;
@@ -85,21 +81,15 @@ for (let i = 1; i < rawInvite.length; i++) {
     unmatched++;
   }
 
-  const key = teamName.toLowerCase();
-  if (!teamMap.has(key)) {
-    teamMap.set(key, {
-      r: teamMap.size + 1,   // serial number (1-based)
-      t: teamName,
-      l: Buffer.from(leaderEmail).toString('base64'),
-      o: org,
-      d: domainLabel
-    });
+  if (normalizedEmail && normalizedEmail.includes('@')) {
+    hashSet.add(hashEmail(normalizedEmail));
   }
 }
 
-const teams = Array.from(teamMap.values());
+const lookupEntries = Array.from(hashSet).sort().map((h) => ({ h }));
+const payload = JSON.stringify(lookupEntries);
 
-console.log(`✅ Processed ${teams.length} unique teams`);
+console.log(`✅ Processed ${lookupEntries.length} unique hashed records`);
 console.log(`   Matched domain: ${matched} rows`);
 console.log(`   No domain (→ Open Innovation): ${unmatched} rows`);
 
@@ -109,8 +99,15 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
 
 fs.writeFileSync(
   path.join(dataDir, 'results.json'),
-  JSON.stringify(teams),
+  payload,
   'utf-8'
 );
 
-console.log(`✅ Wrote ${teams.length} teams to data/results.json`);
+fs.writeFileSync(
+  path.join(dataDir, 'results.b64'),
+  Buffer.from(payload, 'utf-8').toString('base64'),
+  'utf-8'
+);
+
+console.log(`✅ Wrote ${lookupEntries.length} hashed emails to data/results.json`);
+console.log('✅ Wrote privacy-safe payload to data/results.b64');

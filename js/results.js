@@ -1,13 +1,10 @@
 /* ========================================
-   INDIA INNOVATES 2026 — RESULTS PAGE JS
+   INDIA INNOVATES 2026 — PRIVATE LOOKUP JS
    ======================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  // --- Anti-scraper ---
-  document.addEventListener('contextmenu', e => e.preventDefault());
-
-  // --- Shared Nav/Hamburger ---
   const nav = document.querySelector('.nav');
   const hamburger = document.getElementById('nav-hamburger');
   const navLinks = document.getElementById('nav-links');
@@ -24,7 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (announcementBanner) {
     const closeBtn = document.getElementById('announcement-close');
     if (closeBtn) {
-      try { if (sessionStorage.getItem('announcementDismissed') === '1') announcementBanner.classList.add('dismissed'); } catch {}
+      try {
+        if (sessionStorage.getItem('announcementDismissed') === '1') {
+          announcementBanner.classList.add('dismissed');
+        }
+      } catch {}
+
       closeBtn.addEventListener('click', () => {
         announcementBanner.classList.add('dismissed');
         updateNavOffset();
@@ -32,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+
   updateNavOffset();
   window.addEventListener('resize', updateNavOffset, { passive: true });
 
@@ -41,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       navLinks.classList.toggle('open');
       document.body.style.overflow = navLinks.classList.contains('open') ? 'hidden' : '';
     });
-    navLinks.querySelectorAll('a').forEach(link => {
+    navLinks.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
         hamburger.classList.remove('open');
         navLinks.classList.remove('open');
@@ -56,369 +59,104 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  // --- Data Loading ---
   const dataEl = document.getElementById('results-data');
-  if (!dataEl) return;
-
-  let allTeams;
-  try {
-    const raw = atob(dataEl.textContent.trim());
-    allTeams = JSON.parse(raw);
-  } catch {
-    try {
-      allTeams = JSON.parse(dataEl.textContent.trim());
-    } catch {
-      console.error('Failed to parse results data');
-      return;
-    }
-  }
-
-  // Decode leader emails
-  allTeams.forEach(t => {
-    try { t._le = atob(t.l); } catch { t._le = t.l; }
-  });
-
-  // --- Constants ---
-  const PER_PAGE = 20;
-  let currentPage = 1;
-  let displayedTeams = allTeams;
-
-  // --- DOM refs ---
   const searchInput = document.getElementById('search-input');
   const searchBtn = document.getElementById('search-btn');
   const searchClear = document.getElementById('search-clear');
   const searchMeta = document.getElementById('search-meta');
-  const tableBody = document.getElementById('results-tbody');
-  const cardsContainer = document.getElementById('results-cards');
-  const paginationContainer = document.getElementById('pagination');
-  const bruteSection = document.getElementById('brute-force-section');
-  const bruteBtn = document.getElementById('brute-btn');
-  const bruteProgress = document.getElementById('brute-progress');
-  const bruteBar = document.getElementById('brute-bar');
-  const noResults = document.getElementById('no-results');
-  const totalTeamsEl = document.getElementById('total-teams');
+  const lookupResult = document.getElementById('lookup-result');
 
-  if (totalTeamsEl) totalTeamsEl.textContent = allTeams.length;
+  if (!dataEl || !searchInput || !searchBtn || !lookupResult) return;
 
-  // --- Email masking ---
-  function maskEmail(email) {
-    if (!email || !email.includes('@')) return '••••••';
-    const [user, domain] = email.split('@');
-    const maskedUser = user[0] + '•'.repeat(Math.min(user.length - 1, 4));
-    const domParts = domain.split('.');
-    const maskedDom = domParts[0][0] + '•'.repeat(Math.min(domParts[0].length - 1, 3)) +
-      (domParts.length > 1 ? '.' + domParts.slice(1).join('.') : '');
-    return maskedUser + '@' + maskedDom;
+  let entries;
+  try {
+    entries = JSON.parse(atob(dataEl.textContent.trim()));
+  } catch {
+    try {
+      entries = JSON.parse(dataEl.textContent.trim());
+    } catch {
+      if (searchMeta) searchMeta.textContent = 'Unable to load the verification list right now.';
+      return;
+    }
   }
 
-  // --- Domain tag class ---
-  function domainClass(d) {
-    if (!d) return 'open';
-    const dl = d.toLowerCase();
-    if (dl.includes('urban')) return 'urban';
-    if (dl.includes('democracy') || dl.includes('digital')) return 'democracy';
-    if (dl.includes('cyber')) return 'cyber';
-    return 'open';
+  const hashSet = new Set(entries.map((item) => String(item.h || '').toLowerCase()).filter(Boolean));
+
+  async function sha256Hex(text) {
+    const bytes = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
   }
 
-  // --- Render table row ---
-  function renderRow(team) {
-    const masked = maskEmail(team._le);
-    return `<tr>
-      <td class="rank-cell">${team.r}</td>
-      <td><span class="team-name">${escHTML(team.t)}</span></td>
-      <td><span class="domain-tag ${domainClass(team.d)}">${escHTML(team.d)}</span></td>
-      <td>${escHTML(team.o)}</td>
-      <td><span class="masked-email no-select" data-e="${team.l}" data-m="${escHTML(masked)}">${escHTML(masked)}<span class="reveal-hint">click</span></span></td>
-    </tr>`;
+  function setResult(type, message) {
+    lookupResult.className = `lookup-result ${type}`;
+    lookupResult.textContent = message;
+    lookupResult.style.display = 'block';
   }
 
-  // --- Render card (mobile) ---
-  function renderCard(team) {
-    const masked = maskEmail(team._le);
-    return `<div class="result-card">
-      <div class="result-card-header">
-        <div class="result-card-rank">${team.r}</div>
-        <div class="result-card-team">
-          <div class="team-name">${escHTML(team.t)}</div>
-          <div class="result-card-domain"><span class="domain-tag ${domainClass(team.d)}">${escHTML(team.d)}</span></div>
-        </div>
-      </div>
-      <div class="result-card-body">
-        <div class="result-card-field full-width">
-          <div class="field-label">Organisation</div>
-          <div class="field-value">${escHTML(team.o)}</div>
-        </div>
-        <div class="result-card-field full-width">
-          <div class="field-label">Leader Email</div>
-          <div class="field-value"><span class="masked-email no-select" data-e="${team.l}" data-m="${escHTML(masked)}">${escHTML(masked)}<span class="reveal-hint">tap</span></span></div>
-        </div>
-      </div>
-    </div>`;
-  }
+  async function runLookup() {
+    const raw = searchInput.value.trim().toLowerCase();
 
-  function escHTML(s) {
-    if (!s) return '';
-    const d = document.createElement('div');
-    d.textContent = String(s);
-    return d.innerHTML;
-  }
-
-  // --- Render page ---
-  function render() {
-    const start = (currentPage - 1) * PER_PAGE;
-    const end = Math.min(start + PER_PAGE, displayedTeams.length);
-    const pageTeams = displayedTeams.slice(start, end);
-
-    if (displayedTeams.length === 0) {
-      if (tableBody) tableBody.innerHTML = '';
-      if (cardsContainer) cardsContainer.innerHTML = '';
-      if (noResults) noResults.style.display = 'block';
-      if (paginationContainer) paginationContainer.innerHTML = '';
+    if (!raw) {
+      if (searchMeta) searchMeta.textContent = 'Enter your registered leader email to verify.';
+      lookupResult.style.display = 'none';
       return;
     }
 
-    if (noResults) noResults.style.display = 'none';
-
-    // Table
-    if (tableBody) {
-      tableBody.innerHTML = pageTeams.map(renderRow).join('');
-    }
-
-    // Cards
-    if (cardsContainer) {
-      cardsContainer.innerHTML = pageTeams.map(renderCard).join('');
-    }
-
-    // Pagination
-    renderPagination();
-
-    // Attach email reveal handlers
-    document.querySelectorAll('.masked-email:not(.revealed)').forEach(el => {
-      el.addEventListener('click', function handler() {
-        const enc = this.getAttribute('data-e');
-        try {
-          this.textContent = atob(enc);
-        } catch {
-          this.textContent = enc;
-        }
-        this.classList.add('revealed');
-        this.removeEventListener('click', handler);
-      }, { once: true });
-    });
-  }
-
-  // --- Pagination ---
-  function renderPagination() {
-    if (!paginationContainer) return;
-    const totalPages = Math.ceil(displayedTeams.length / PER_PAGE);
-    if (totalPages <= 1) {
-      paginationContainer.innerHTML = '';
+    if (!raw.includes('@') || raw.length < 6) {
+      if (searchMeta) searchMeta.textContent = 'Enter a valid email address.';
+      lookupResult.style.display = 'none';
       return;
     }
 
-    let html = '';
-    html += `<button class="page-btn nav-arrow" data-p="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+    searchBtn.disabled = true;
+    searchBtn.textContent = 'Checking...';
+    if (searchMeta) searchMeta.textContent = 'Verifying your email securely...';
 
-    const maxVisible = 7;
-    let startP = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let endP = Math.min(totalPages, startP + maxVisible - 1);
-    if (endP - startP + 1 < maxVisible) startP = Math.max(1, endP - maxVisible + 1);
-
-    if (startP > 1) {
-      html += `<button class="page-btn" data-p="1">1</button>`;
-      if (startP > 2) html += `<span class="page-info">…</span>`;
-    }
-
-    for (let i = startP; i <= endP; i++) {
-      html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-p="${i}">${i}</button>`;
-    }
-
-    if (endP < totalPages) {
-      if (endP < totalPages - 1) html += `<span class="page-info">…</span>`;
-      html += `<button class="page-btn" data-p="${totalPages}">${totalPages}</button>`;
-    }
-
-    html += `<button class="page-btn nav-arrow" data-p="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
-    html += `<div class="page-info">Page ${currentPage} of ${totalPages}</div>`;
-
-    paginationContainer.innerHTML = html;
-
-    paginationContainer.querySelectorAll('.page-btn[data-p]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const p = parseInt(btn.dataset.p);
-        if (p >= 1 && p <= totalPages && p !== currentPage) {
-          currentPage = p;
-          render();
-          // Scroll to results
-          const sec = document.querySelector('.results-section');
-          if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
-  }
-
-  // --- Fuse.js search ---
-  let fuse = null;
-
-  function initFuse() {
-    if (typeof Fuse === 'undefined') return null;
-    return new Fuse(allTeams, {
-      keys: [
-        { name: 't', weight: 0.4 },
-        { name: '_le', weight: 0.3 },
-        { name: 'o', weight: 0.2 },
-        { name: 'd', weight: 0.1 },
-      ],
-      threshold: 0.4,
-      ignoreLocation: true,
-      includeScore: true,
-    });
-  }
-
-  // Init fuse when library loads
-  function tryInitFuse() {
-    if (!fuse && typeof Fuse !== 'undefined') {
-      fuse = initFuse();
-    }
-  }
-
-  // --- Search handler ---
-  let searchTimeout = null;
-
-  function doSearch() {
-    const query = searchInput.value.trim();
-
-    if (!query) {
-      displayedTeams = allTeams;
-      currentPage = 1;
-      if (searchMeta) searchMeta.innerHTML = '';
-      if (searchClear) searchClear.classList.remove('visible');
-      if (bruteSection) bruteSection.classList.remove('visible');
-      render();
-      return;
-    }
-
-    if (searchClear) searchClear.classList.add('visible');
-
-    tryInitFuse();
-
-    if (fuse) {
-      const results = fuse.search(query);
-      displayedTeams = results.map(r => r.item);
-    } else {
-      // Fallback: simple substring
-      const q = query.toLowerCase();
-      displayedTeams = allTeams.filter(t =>
-        t.t.toLowerCase().includes(q) ||
-        t._le.toLowerCase().includes(q) ||
-        t.o.toLowerCase().includes(q) ||
-        t.d.toLowerCase().includes(q)
-      );
-    }
-
-    currentPage = 1;
-    if (searchMeta) searchMeta.innerHTML = `Found <strong>${displayedTeams.length}</strong> result${displayedTeams.length !== 1 ? 's' : ''} for "${escHTML(query)}"`;
-
-    // Show brute force if no results
-    if (displayedTeams.length === 0 && bruteSection) {
-      bruteSection.classList.add('visible');
-    } else if (bruteSection) {
-      bruteSection.classList.remove('visible');
-    }
-
-    render();
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(doSearch, 300);
-    });
-
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        clearTimeout(searchTimeout);
-        doSearch();
+    try {
+      const hash = await sha256Hex(raw);
+      if (hashSet.has(hash)) {
+        setResult(
+          'success',
+          'Shortlisted: this email is in the Round 1 selected list. Please check your registered inbox for next steps.'
+        );
+      } else {
+        setResult(
+          'not-found',
+          'No shortlisted record found for this email. If you believe this is an error, contact the organizers.'
+        );
       }
-    });
+    } catch {
+      setResult('error', 'We could not verify right now. Please retry in a few moments.');
+    } finally {
+      searchBtn.disabled = false;
+      searchBtn.textContent = 'Verify';
+    }
   }
 
-  if (searchBtn) {
-    searchBtn.addEventListener('click', () => {
-      clearTimeout(searchTimeout);
-      doSearch();
-    });
-  }
+  searchBtn.addEventListener('click', runLookup);
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runLookup();
+  });
 
   if (searchClear) {
     searchClear.addEventListener('click', () => {
       searchInput.value = '';
-      doSearch();
+      lookupResult.style.display = 'none';
+      if (searchMeta) searchMeta.textContent = 'Enter your registered leader email to verify.';
       searchInput.focus();
+      searchClear.classList.remove('visible');
+    });
+
+    searchInput.addEventListener('input', () => {
+      searchClear.classList.toggle('visible', searchInput.value.trim().length > 0);
     });
   }
 
-  // --- Brute Force Search ---
-  if (bruteBtn) {
-    bruteBtn.addEventListener('click', () => {
-      const query = searchInput.value.trim().toLowerCase();
-      if (!query) return;
-
-      bruteBtn.disabled = true;
-      bruteBtn.textContent = 'Searching...';
-      if (bruteProgress) bruteProgress.classList.add('visible');
-
-      const results = [];
-      const total = allTeams.length;
-      let index = 0;
-      const batchSize = 10;
-
-      function processBatch() {
-        const end = Math.min(index + batchSize, total);
-
-        for (let i = index; i < end; i++) {
-          const t = allTeams[i];
-          const searchable = [
-            t.t, t._le, t.o, t.d,
-            String(t.s), String(t.r)
-          ].join(' ').toLowerCase();
-
-          if (searchable.includes(query)) {
-            results.push(t);
-          }
-        }
-
-        index = end;
-        const progress = Math.round((index / total) * 100);
-        if (bruteBar) bruteBar.style.width = progress + '%';
-
-        if (index < total) {
-          // Deliberate delay for thoroughness feel
-          setTimeout(processBatch, Math.random() * 15 + 5);
-        } else {
-          // Done
-          displayedTeams = results;
-          currentPage = 1;
-          if (searchMeta) searchMeta.innerHTML = `Brute-force found <strong>${results.length}</strong> result${results.length !== 1 ? 's' : ''} for "${escHTML(query)}"`;
-          render();
-
-          bruteBtn.disabled = false;
-          bruteBtn.textContent = 'Brute Force Search';
-          if (bruteProgress) bruteProgress.classList.remove('visible');
-          if (bruteBar) bruteBar.style.width = '0%';
-
-          if (results.length > 0 && bruteSection) {
-            bruteSection.classList.remove('visible');
-          }
-        }
-      }
-
-      processBatch();
-    });
+  if (searchMeta) {
+    searchMeta.textContent = 'Enter your registered leader email to verify.';
   }
-
-  // --- Initial render ---
-  if (searchMeta) searchMeta.innerHTML = '';
-  render();
 });

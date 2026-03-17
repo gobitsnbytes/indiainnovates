@@ -202,6 +202,35 @@
 .search-clear:hover { opacity: 1; }
 .search-clear.visible { display: block; }
 
+.lookup-result {
+  display: none;
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  border: var(--border-thick);
+  background: var(--white);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.lookup-result.success {
+  border-color: var(--green);
+  color: #0b5e03;
+  background: #e9f7e7;
+}
+
+.lookup-result.not-found {
+  border-color: var(--navy);
+  color: var(--navy);
+  background: #eef2f7;
+}
+
+.lookup-result.error {
+  border-color: #b71c1c;
+  color: #8a1010;
+  background: #fdecec;
+}
+
 /* ========================================
    BRUTE FORCE SEARCH
    ======================================== */

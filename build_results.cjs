@@ -4,8 +4,19 @@
  */
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const b64Data = fs.readFileSync(path.join(__dirname, 'data/results.b64'), 'utf-8');
+
+function assetVersion(relativePath) {
+  const fullPath = path.join(__dirname, relativePath);
+  const content = fs.readFileSync(fullPath, 'utf-8');
+  return crypto.createHash('md5').update(content).digest('hex').slice(0, 10);
+}
+
+const stylesV = assetVersion('css/styles.css');
+const resultsStylesV = assetVersion('css/results.css');
+const resultsJsV = assetVersion('js/results.js');
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -18,16 +29,16 @@ const html = `<!DOCTYPE html>
   <!-- Anti-scraper: noindex -->
   <meta name="robots" content="noindex, nofollow">
   <meta name="googlebot" content="noindex, nofollow">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
   <title>Results | India Innovates 2026</title>
   <meta name="description" content="India Innovates 2026 — Round 1 Results. Check your team's status.">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/results.css">
-
-  <!-- Fuse.js for fuzzy search -->
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer><\/script>
+  <link rel="stylesheet" href="css/styles.css?v=${stylesV}">
+  <link rel="stylesheet" href="css/results.css?v=${resultsStylesV}">
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-K6F7N5MR4K"><\/script>
@@ -97,8 +108,8 @@ const html = `<!DOCTYPE html>
         <span class="highlight-saffron">Results</span> Announced
       </h1>
       <p class="results-hero-subtitle">
-        Shortlisting status for all registered teams. Search for your team name, email, or organisation below.<br>
-        <span style="font-size: 0.85em; opacity: 0.8;"><em>Note: The order/serial number does not indicate any ranking based on quality.</em></span>
+        Private verification portal for Round 1 shortlisting.<br>
+        <span style="font-size: 0.85em; opacity: 0.8;"><em>For participant privacy, public team lists and emails are not displayed.</em></span>
       </p>
 
 
@@ -126,53 +137,24 @@ const html = `<!DOCTYPE html>
     <div class="search-inner">
       <div class="search-box">
         <input type="text" id="search-input" class="search-input"
-          placeholder="Search by team name, email, or organisation..."
+          placeholder="Enter registered leader email"
           autocomplete="off" spellcheck="false">
         <button class="search-clear" id="search-clear" aria-label="Clear search">&times;</button>
-        <button class="search-btn" id="search-btn">Search</button>
+        <button class="search-btn" id="search-btn">Verify</button>
       </div>
       <div class="search-meta" id="search-meta"></div>
-
-      <!-- Brute force fallback -->
-      <div class="brute-force-section" id="brute-force-section">
-        <p class="brute-desc">Fuzzy search didn't find your team? Try an exhaustive brute-force search across all fields.</p>
-        <button class="brute-btn" id="brute-btn">Brute Force Search</button>
-        <div class="brute-progress" id="brute-progress">
-          <div class="brute-progress-bar" id="brute-bar"></div>
-        </div>
-      </div>
+      <div class="lookup-result" id="lookup-result" aria-live="polite"></div>
     </div>
   </section>
 
-  <!-- ==================== RESULTS TABLE ==================== -->
+  <!-- ==================== RESULTS NOTES ==================== -->
   <section class="results-section">
     <div class="results-container">
-      <!-- Desktop table -->
-      <table class="results-table no-select">
-        <thead>
-          <tr>
-            <th>S.No.</th>
-            <th>Team Name</th>
-            <th>Domain</th>
-            <th>Organisation</th>
-            <th>Leader Email</th>
-          </tr>
-        </thead>
-        <tbody id="results-tbody"></tbody>
-      </table>
-
-      <!-- Mobile cards -->
-      <div class="results-cards" id="results-cards"></div>
-
-      <!-- No results -->
-      <div class="no-results" id="no-results" style="display:none;">
-        <div class="no-results-icon">🔍</div>
-        <h3>No Teams Found</h3>
-        <p>Try a different search term, check for typos, or use the brute-force search option above.</p>
+      <div class="no-results" style="display:block;max-width:900px;margin:0 auto;">
+        <div class="no-results-icon">🔒</div>
+        <h3>Privacy-Protected Results</h3>
+        <p>This page uses one-way hashed email verification. We do not publish the full shortlist or participant email addresses in readable form.</p>
       </div>
-
-      <!-- Pagination -->
-      <div class="pagination" id="pagination"></div>
     </div>
   </section>
 
@@ -281,7 +263,7 @@ const html = `<!DOCTYPE html>
   <script type="application/json" id="results-data">${b64Data}<\/script>
 
   <!-- Results JS -->
-  <script src="js/results.js"><\/script>
+  <script src="js/results.js?v=${resultsJsV}"><\/script>
 </body>
 
 </html>`;
